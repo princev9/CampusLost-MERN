@@ -1,0 +1,11 @@
+import { useEffect,useState } from 'react';
+import { Link } from 'react-router-dom';
+import api from '../api';
+import ItemCard from '../components/ItemCard';
+import { useAuth } from '../context/AuthContext';
+export default function Items(){
+ const [items,setItems]=useState([]),[q,setQ]=useState(''),[type,setType]=useState(''),[category,setCategory]=useState(''),[error,setError]=useState('');
+ const {user}=useAuth();
+ useEffect(()=>{const t=setTimeout(()=>api.get('/items',{params:{q,type,category}}).then(r=>{setItems(r.data.items);setError('');}).catch(()=>setError('Could not load listings. Check that the backend is running.')),250);return()=>clearTimeout(t);},[q,type,category]);
+ return <main className="container page-section"><div className="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-4"><div><span className="eyebrow dark">CAMPUS COMMUNITY BOARD</span><h1>Browse items</h1><p className="text-muted mb-0">Search lost and found reports from your campus.</p></div>{user&&<Link to="/report" className="btn btn-dark"><i className="bi bi-plus-lg me-2"/>Report an item</Link>}</div><div className="filter-panel row g-2 mb-4"><div className="col-lg-6"><div className="input-group"><span className="input-group-text bg-white"><i className="bi bi-search"/></span><input className="form-control border-start-0" placeholder="Search title, category, description..." value={q} onChange={e=>setQ(e.target.value)}/></div></div><div className="col-lg-3"><select className="form-select" value={type} onChange={e=>setType(e.target.value)}><option value="">Lost & Found</option><option value="lost">Lost items</option><option value="found">Found items</option></select></div><div className="col-lg-3"><select className="form-select" value={category} onChange={e=>setCategory(e.target.value)}><option value="">All categories</option>{['Electronics','Documents','Accessories','Bags','Keys','Books','Clothing','Other'].map(c=><option key={c}>{c}</option>)}</select></div></div>{error&&<div className="alert alert-warning">{error}</div>}<div className="row g-4">{items.map(item=><div className="col-sm-6 col-lg-4" key={item._id}><ItemCard item={item}/></div>)}</div>{!items.length&&!error&&<div className="empty-state mt-4"><i className="bi bi-inbox fs-1 d-block mb-2"/><h5>No matching items</h5><p>Try a different search or filter.</p></div>}</main>;
+}

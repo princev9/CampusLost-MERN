@@ -1,0 +1,11 @@
+import { Router } from 'express';
+import { listItems, myItems, getItem, createItem, updateItem, deleteItem } from '../controllers/itemController.js';
+import { protect } from '../middleware/auth.js';
+const router = Router();
+router.get('/', listItems);
+router.get('/mine', protect, myItems);
+router.get('/:id', getItem);
+router.post('/', protect, createItem);
+router.put('/:id', protect, updateItem);
+router.delete('/:id', protect, deleteItem);
+export default router;

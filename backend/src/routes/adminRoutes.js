@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { users, items, setItemStatus, deleteUser } from '../controllers/adminController.js';
+import { protect, adminOnly } from '../middleware/auth.js';
+const router = Router();
+router.use(protect, adminOnly);
+router.get('/users', users);
+router.get('/items', items);
+router.patch('/items/:id/status', setItemStatus);
+router.delete('/users/:id', deleteUser);
+export default router;

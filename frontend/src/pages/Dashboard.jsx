@@ -1,0 +1,11 @@
+import { useEffect,useState } from 'react';
+import { Link } from 'react-router-dom';
+import api from '../api';
+import { useAuth } from '../context/AuthContext';
+export default function Dashboard(){
+ const {user}=useAuth(),[data,setData]=useState(null),[items,setItems]=useState([]),[error,setError]=useState('');
+ const load=()=>api.get('/users/profile').then(r=>setData(r.data)).catch(e=>setError(e.response?.data?.message||'Unable to load profile'));
+ useEffect(()=>{load();api.get('/items/mine').then(r=>setItems(r.data.items)).catch(()=>{});},[]);
+ async function remove(id){if(!confirm('Delete this listing?'))return;try{await api.delete(`/items/${id}`);setItems(v=>v.filter(x=>x._id!==id));load();}catch(e){setError(e.response?.data?.message||'Delete failed');}}
+ return <main className="container page-section"><div className="d-flex justify-content-between align-items-center flex-wrap gap-3"><div><span className="eyebrow dark">YOUR CAMPUS SPACE</span><h1>Hello, {user.name.split(' ')[0]}.</h1><p className="text-muted">Manage your reports and profile.</p></div><Link to="/report" className="btn btn-dark"><i className="bi bi-plus-lg me-2"/>New report</Link></div>{error&&<div className="alert alert-warning">{error}</div>}<div className="row g-3 my-3">{[['Total reports',data?.stats.total??'—','bi-clipboard-check'],['Active listings',data?.stats.active??'—','bi-broadcast']].map(x=><div className="col-md-3" key={x[0]}><div className="stat-card"><i className={`bi ${x[2]}`}/><strong>{x[1]}</strong><span>{x[0]}</span></div></div>)}</div><div className="d-flex justify-content-between align-items-center mb-3"><h3>My reports</h3><Link to="/profile" className="text-link">Edit profile</Link></div><div className="table-responsive bg-white rounded-4 p-3 shadow-sm"><table className="table align-middle"><thead><tr><th>Item</th><th>Type</th><th>Status</th><th>Action</th></tr></thead><tbody>{items.map(i=><tr key={i._id}><td><Link to={`/items/${i._id}`}>{i.title}</Link></td><td className="text-capitalize">{i.type}</td><td><span className="badge text-bg-light">{i.status}</span></td><td><button className="btn btn-sm btn-outline-danger" onClick={()=>remove(i._id)}>Delete</button></td></tr>)}</tbody></table>{!items.length&&<p className="text-muted mb-0">You have not posted any active listings yet.</p>}</div></main>;
+}

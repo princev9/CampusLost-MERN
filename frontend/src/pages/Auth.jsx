@@ -1,0 +1,11 @@
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import api from '../api';
+import { useAuth } from '../context/AuthContext';
+export default function Auth({ mode }) {
+ const isRegister=mode==='register', [form,setForm]=useState({name:'',email:'',password:'',phone:'',college:''}), [error,setError]=useState(''), [busy,setBusy]=useState(false);
+ const {saveSession}=useAuth(), nav=useNavigate();
+ const change=e=>setForm({...form,[e.target.name]:e.target.value});
+ async function submit(e){e.preventDefault();setError('');setBusy(true);try{const {data}=await api.post(`/auth/${mode}`,form);saveSession(data);nav('/dashboard');}catch(err){setError(err.response?.data?.message||'Something went wrong');}finally{setBusy(false);}}
+ return <div className="auth-wrap"><div className="auth-card"><div className="auth-icon"><i className="bi bi-search-heart"/></div><span className="eyebrow dark">{isRegister?'JOIN THE COMMUNITY':'WELCOME BACK'}</span><h2>{isRegister?'Create your account':'Sign in to CampusLost'}</h2><p className="text-muted">{isRegister?'A campus full of helpful people starts here.':'Pick up where your campus search left off.'}</p>{error&&<div className="alert alert-danger py-2">{error}</div>}<form onSubmit={submit}>{isRegister&&<><input className="form-control mb-3" name="name" placeholder="Full name" value={form.name} onChange={change} required/><input className="form-control mb-3" name="phone" placeholder="Phone (optional)" value={form.phone} onChange={change}/><input className="form-control mb-3" name="college" placeholder="College / university" value={form.college} onChange={change}/></>}<input className="form-control mb-3" type="email" name="email" placeholder="College email address" value={form.email} onChange={change} required/><input className="form-control mb-3" type="password" name="password" placeholder="Password (minimum 8 characters)" value={form.password} onChange={change} minLength="8" required/><button disabled={busy} className="btn btn-dark w-100 py-2">{busy?'Please wait...':isRegister?'Create account':'Login'} <i className="bi bi-arrow-right ms-2"/></button></form><p className="text-center mt-4 mb-0 small">{isRegister?'Already registered?':'New to CampusLost?'} <Link to={isRegister?'/login':'/register'}>{isRegister?'Login':'Create an account'}</Link></p></div></div>;
+}
